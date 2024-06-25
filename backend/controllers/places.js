@@ -1,138 +1,66 @@
 const router = require('express').Router()
-const db = require("../models")
+const db = require('../models')
 
-const { Place, Comment, User } = db
-
-router.post('/', async (req, res) => {
-    if (!req.body.pic) {
-        req.body.pic = 'http://placekitten.com/400/400'
-    }
-    if (!req.body.city) {
-        req.body.city = 'Anytown'
-    }
-    if (!req.body.state) {
-        req.body.state = 'USA'
-    }
-    const place = await Place.create(req.body)
-    res.json(place)
-})
-
-
-router.get('/', async (req, res) => {
-    const places = await Place.findAll()
-    res.json(places)
-})
-
-
-router.get('/:placeId', async (req, res) => {
-    let placeId = Number(req.params.placeId)
-    if (isNaN(placeId)) {
-        res.status(404).json({ message: `Invalid id "${placeId}"` })
-    } else {
-        const place = await Place.findOne({
-            where: { placeId: placeId },
-            include: {
-                association: 'comments',
-                include: 'author'
-            }
-        })
-        if (!place) {
-            res.status(404).json({ message: `Could not find place with id "${placeId}"` })
-        } else {
-            res.json(place)
-        }
-    }
-})
-
-router.put('/:placeId', async (req, res) => {
-    let placeId = Number(req.params.placeId)
-    if (isNaN(placeId)) {
-        res.status(404).json({ message: `Invalid id "${placeId}"` })
-    } else {
-        const place = await Place.findOne({
-            where: { placeId: placeId },
-        })
-        if (!place) {
-            res.status(404).json({ message: `Could not find place with id "${placeId}"` })
-        } else {
-            Object.assign(place, req.body)
-            await place.save()
-            res.json(place)
-        }
-    }
-})
-
-router.delete('/:placeId', async (req, res) => {
-    let placeId = Number(req.params.placeId)
-    if (isNaN(placeId)) {
-        res.status(404).json({ message: `Invalid id "${placeId}"` })
-    } else {
-        const place = await Place.findOne({
-            where: {
-                placeId: placeId
-            }
-        })
-        if (!place) {
-            res.status(404).json({ message: `Could not find place with id "${placeId}"` })
-        } else {
-            await place.destroy()
-            res.json(place)
-        }
-    }
-})
-
-router.post('/:placeId/comments', async (req, res) => {
-    const placeId = Number(req.params.placeId)
-
-    req.body.rant = req.body.rant ? true : false
-
-    const place = await Place.findOne({
-        where: { placeId: placeId }
+router.get('/', (req, res) => {
+    db.Place.find()
+    .then((places) => {
+      res.render('places/index', { places })
     })
-
-    if (!place) {
-        res.status(404).json({ message: `Could not find place with id "${placeId}"` })
-    }
-
-    const author = await User.findOne({
-        where: { userId: req.body.authorId }
-    })
-
-    if (!author) {
-        res.status(404).json({ message: `Could not find author with id "${req.body.authorId}"` })
-    }
-
-    const comment = await Comment.create({
-        ...req.body,
-        placeId: placeId
-    })
-
-    res.send({
-        ...comment.toJSON(),
-        author
+    .catch(err => {
+      console.log(err) 
+      res.render('error404')
     })
 })
 
-router.delete('/:placeId/comments/:commentId', async (req, res) => {
-    let placeId = Number(req.params.placeId)
-    let commentId = Number(req.params.commentId)
 
-    if (isNaN(placeId)) {
-        res.status(404).json({ message: `Invalid id "${placeId}"` })
-    } else if (isNaN(commentId)) {
-        res.status(404).json({ message: `Invalid id "${commentId}"` })
-    } else {
-        const comment = await Comment.findOne({
-            where: { commentId: commentId, placeId: placeId }
-        })
-        if (!comment) {
-            res.status(404).json({ message: `Could not find comment with id "${commentId}" for place with id "${placeId}"` })
-        } else {
-            await comment.destroy()
-            res.json(comment)
-        }
-    }
+
+router.post('/', (req, res) => {
+    db.Place.create(req.body)
+    .then(() => {
+        res.redirect('/places')
+    })
+    .catch(err => {
+        console.log('err', err)
+        res.render('error404')
+    })
+  })
+  
+
+router.get('/new', (req, res) => {
+  res.render('places/new')
 })
 
+router.get('/:id', (req, res) => {
+  res.send('GET /places/:id stub')
+})
+
+router.put('/:id', (req, res) => {
+  res.send('PUT /places/:id stub')
+})
+
+router.delete('/:id', (req, res) => {
+  res.send('DELETE /places/:id stub')
+})
+
+router.get('/:id', (req, res) => {
+    db.Place.findById(req.params.id)
+    .then(place => {
+        res.render('places/show', { place })
+    })
+    .catch(err => {
+        console.log('err', err)
+        res.render('error404')
+    })
+})
+
+
+
+router.post('/:id/rant', (req, res) => {
+  res.send('GET /places/:id/rant stub')
+})
+
+router.delete('/:id/rant/:rantId', (req, res) => {
+    res.send('GET /places/:id/rant/:rantId stub')
+})
 
 module.exports = router

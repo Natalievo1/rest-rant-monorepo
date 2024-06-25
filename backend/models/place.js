@@ -1,34 +1,12 @@
-'use strict';
-const { Model } = require('sequelize');
+const mongoose = require('mongoose')
 
-module.exports = (sequelize, DataTypes) => {
+const placeSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  pic: String,
+  cuisines: { type: String, required: true },
+  city: { type: String, default: 'Anytown' },
+  state: { type: String, default: 'USA' },
+  founded: Number
+})
 
-  class Place extends Model {
-
-
-    static associate({ Comment }) {
-      Place.hasMany(Comment, { foreignKey: 'place_id', as: 'comments' })
-    }
-
-  };
-
-  Place.init({
-    placeId: {
-      type: DataTypes.SMALLINT,
-      primaryKey: true,
-      autoIncrement: true
-
-    },
-    name: DataTypes.STRING,
-    city: DataTypes.STRING,
-    state: DataTypes.STRING,
-    cuisines: DataTypes.STRING,
-    pic: DataTypes.STRING,
-    founded: DataTypes.INTEGER
-  }, {
-    sequelize,
-    underscored: true,
-    modelName: 'Place',
-  });
-  return Place;
-};
+module.exports = mongoose.model('Place', placeSchema)

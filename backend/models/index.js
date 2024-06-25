@@ -1,4 +1,11 @@
 'use strict';
+const mongoose = require('mongoose')
+
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true, 
+  useUnifiedTopology: true
+})
+
 
 const fs = require('fs');
 const path = require('path');
@@ -34,4 +41,22 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
+let placesFormatted = data.places.map((place) => {
+  return (
+    <div className="col-sm-6">
+      <h2>
+        <a href={/places/${place.id}`}>
+          {place.name}
+        </a>
+      </h2>
+      ...
+    </div>
+  )
+})
+
+
 module.exports = db;
+
+
+
+module.exports.Place = require('./places')
